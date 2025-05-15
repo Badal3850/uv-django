@@ -1,24 +1,5 @@
-from .models import Movie
-from django.http import HttpResponse, JsonResponse
-from .serializers import MovieSerializer
-from django.shortcuts import render
-from rest_framework.renderers import JSONRenderer
+from django.http import JsonResponse
 import requests
-
-def home(request):
-    return render(request, 'home.html')
-
-def movie_list(request,pk):
-    movies = Movie.objects.get(id=pk)
-    serializer = MovieSerializer(movies)
-    return JsonResponse(serializer.data)
-    
-    
-def load_movies(request,pk):
-    movies = Movie.objects.all()
-    serializer = MovieSerializer(movies, many=True)
-    return JsonResponse(serializer.data, safe=False)
-
 
 def get_active_jobs(request):
     url = "https://cat-fact.herokuapp.com/facts/random?amount=1"

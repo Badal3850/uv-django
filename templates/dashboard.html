@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-A">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Dashboard - ToolVerse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar ... (same as before) */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+        .sidebar-link.active {
+            background-color: rgba(55, 65, 81, 0.5); /* bg-gray-700/50 */
+            color: #5eead4; /* text-teal-400 */
+        }
+        .sidebar-link.active i {
+            color: #5eead4; /* text-teal-400 */
+        }
+        .content-section {
+            display: none; /* Hide all sections by default */
+        }
+        .content-section.active {
+            display: block; /* Show active section */
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans antialiased flex">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-gray-800 shadow-xl h-screen sticky top-0 p-6 space-y-6 hidden md:flex flex-col">
+        <a href="{% url 'home' %}" class="text-2xl font-bold text-white hover:text-teal-400 transition-colors mb-6">
+            <i class="fas fa-tools mr-2"></i>ToolVerse
+        </a>
+
+        <nav id="sidebar-nav" class="space-y-2 flex-grow">
+            <a href="#" data-target="main-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors active">
+                <i class="fas fa-tachometer-alt w-5"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" data-target="my-tools-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-cubes w-5"></i>
+                <span>My Tools</span>
+            </a>
+            <a href="#" data-target="browse-tools-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-search w-5"></i>
+                <span>Browse All Tools</span>
+            </a>
+            <a href="#" data-target="favorites-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-star w-5"></i>
+                <span>Favorites</span>
+            </a>
+            <a href="#" data-target="settings-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-cog w-5"></i>
+                <span>Account Settings</span>
+            </a>
+            <a href="#" data-target="help-content" class="sidebar-link flex items-center space-x-3 text-gray-300 hover:bg-gray-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-question-circle w-5"></i>
+                <span>Help & Support</span>
+            </a>
+        </nav>
+
+        <div>
+             <a href="{% url 'logout' %}" class="flex items-center space-x-3 text-gray-300 hover:bg-red-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                <i class="fas fa-sign-out-alt w-5"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col h-screen overflow-y-auto">
+        <!-- Top Navbar (for mobile and user profile) -->
+        <header class="bg-gray-800/80 backdrop-blur-md shadow-md p-4 sticky top-0 z-40 md:hidden">
+            <!-- ... (same as before, ensure data-target attributes are added to mobile nav links too if needed) ... -->
+            <div class="container mx-auto flex justify-between items-center">
+                <a href="{% url 'home' %}" class="text-xl font-bold text-white hover:text-teal-400 transition-colors">
+                    <i class="fas fa-tools mr-1"></i>ToolVerse
+                </a>
+                <button id="mobile-menu-button" class="text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </header>
+        <!-- Mobile Sidebar (hidden by default) -->
+        <div id="mobile-menu" class="fixed inset-0 bg-gray-900/90 backdrop-blur-sm z-50 p-6 space-y-6 md:hidden hidden flex-col">
+            <!-- ... (Add data-target attributes to these links as well for SPA behavior on mobile) ... -->
+            <div class="flex justify-between items-center mb-6">
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-white hover:text-teal-400 transition-colors">
+                    <i class="fas fa-tools mr-2"></i>ToolVerse
+                </a>
+                <button id="close-mobile-menu-button" class="text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+            <nav id="mobile-sidebar-nav" class="space-y-2 flex-grow">
+                 <a href="#" data-target="main-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors active">
+                    <i class="fas fa-tachometer-alt w-5"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" data-target="my-tools-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-cubes w-5"></i>
+                    <span>My Tools</span>
+                </a>
+                <!-- ... Add data-target for other mobile nav links ... -->
+                <a href="#" data-target="browse-tools-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-search w-5"></i>
+                    <span>Browse All Tools</span>
+                </a>
+                <a href="#" data-target="favorites-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-star w-5"></i>
+                    <span>Favorites</span>
+                </a>
+                 <a href="#" data-target="settings-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-cog w-5"></i>
+                    <span>Account Settings</span>
+                </a>
+                 <a href="#" data-target="help-content" class="sidebar-link flex items-center space-x-3 text-gray-300 p-3 rounded-lg transition-colors">
+                    <i class="fas fa-question-circle w-5"></i>
+                    <span>Help & Support</span>
+                </a>
+            </nav>
+            <div>
+                 <a href="{% url 'logout' %}" class="flex items-center space-x-3 text-gray-300 hover:bg-red-700/30 hover:text-white p-3 rounded-lg transition-colors">
+                    <i class="fas fa-sign-out-alt w-5"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </div>
+
+
+        <main class="flex-grow p-6 md:p-8">
+            <!-- Main Dashboard Content (Initially Visible) -->
+            <div id="main-content" class="content-section active space-y-8">
+                <!-- Welcome Message & User Profile (Desktop) -->
+                <div class="hidden md:flex justify-between items-center mb-8">
+                    <!-- ... (user welcome content from your original snippet) ... -->
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Welcome back, <span class="text-teal-400">{{ user.first_name|default:user.username }}</span>!</h1>
+                        <p class="text-gray-400">Here's what's new and relevant for you.</p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fas fa-bell text-xl"></i>
+                        </button>
+                        <div class="relative">
+                            <button class="flex items-center space-x-2 group">
+                                <span class="text-gray-300 group-hover:text-white hidden lg:inline">{{ user.first_name|default:user.username }}</span>
+                                <i class="fas fa-chevron-down text-xs text-gray-500 group-hover:text-gray-300 hidden lg:inline"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                 <!-- Welcome Message (Mobile) -->
+                <div class="md:hidden mb-6">
+                    <h1 class="text-2xl font-bold text-white">Welcome, <span class="text-teal-400">{{ user.first_name|default:user.username }}</span>!</h1>
+                </div>
+
+                <!-- Quick Stats -->
+                <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- ... (quick stats content from your original snippet) ... -->
+                    <div class="bg-gray-800/70 p-6 rounded-xl shadow-lg flex items-center space-x-4 hover:shadow-teal-500/20 transition-shadow">
+                        <div class="bg-teal-500/20 p-3 rounded-lg"><i class="fas fa-rocket text-2xl text-teal-400"></i></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Tools Launched</p>
+                            <p class="text-2xl font-semibold text-white">{{ quick_stats.tools_launched|default:0 }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800/70 p-6 rounded-xl shadow-lg flex items-center space-x-4 hover:shadow-purple-500/20 transition-shadow">
+                        <div class="bg-purple-500/20 p-3 rounded-lg"><i class="fas fa-star text-2xl text-purple-400"></i></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Favorites Added</p>
+                            <p class="text-2xl font-semibold text-white">{{ quick_stats.favorites_added|default:0 }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800/70 p-6 rounded-xl shadow-lg flex items-center space-x-4 hover:shadow-pink-500/20 transition-shadow">
+                        <div class="bg-pink-500/20 p-3 rounded-lg"><i class="far fa-clock text-2xl text-pink-400"></i></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Time Saved (Est.)</p>
+                            <p class="text-2xl font-semibold text-white">{{ quick_stats.time_saved_est|default:"N/A" }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-gray-800/70 p-6 rounded-xl shadow-lg flex items-center space-x-4 hover:shadow-green-500/20 transition-shadow">
+                        <div class="bg-green-500/20 p-3 rounded-lg"><i class="fas fa-check-circle text-2xl text-green-400"></i></div>
+                        <div>
+                            <p class="text-sm text-gray-400">Tasks Completed</p>
+                            <p class="text-2xl font-semibold text-white">{{ quick_stats.tasks_completed|default:0 }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recently Used / My Tools Section (on main dashboard) -->
+                <section>
+                    <h2 class="text-2xl font-semibold text-white mb-4">Recently Used Tools</h2>
+                    <!-- ... (recently used tools content from your original snippet) ... -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {% if recently_used_tools %}
+                            {% for tool_interaction in recently_used_tools %}
+                            <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden group transform hover:-translate-y-1 transition-transform duration-300">
+                                <div class="p-6">
+                                    <div class="flex items-center mb-3">
+                                        <div class="bg-{{ tool_interaction.tool.accent_color_class|default:'blue' }}-500/20 p-2.5 rounded-lg mr-3 group-hover:bg-{{ tool_interaction.tool.accent_color_class|default:'blue' }}-500/30">
+                                            <i class="{{ tool_interaction.tool.font_awesome_icon_class|default:'fas fa-wrench' }} text-xl text-{{ tool_interaction.tool.accent_color_class|default:'blue' }}-400"></i>
+                                        </div>
+                                        <h3 class="text-xl font-semibold text-white">{{ tool_interaction.tool.name }}</h3>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-4">{{ tool_interaction.tool.short_description|truncatewords:15 }}</p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-gray-500">Last used: {{ tool_interaction.interacted_at|timesince }} ago</span>
+                                        <a href="{{ tool_interaction.tool.get_launch_url }}" target="_blank" class="bg-teal-600 hover:bg-teal-500 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors">
+                                            Launch <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                        <div class="md:col-span-2 lg:col-span-3 text-center py-10 bg-gray-800/50 rounded-xl">
+                            <i class="fas fa-box-open text-4xl text-gray-500 mb-4"></i>
+                            <p class="text-gray-400">You haven't used any tools recently.</p>
+                            <a href="#" data-target="browse-tools-content" class="sidebar-link mt-4 inline-block text-teal-400 hover:text-teal-300 font-semibold">
+                                Explore Tools Now <i class="fas fa-arrow-right ml-1"></i>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <!-- Discover New Tools Section (on main dashboard) -->
+                <section>
+                    <h2 class="text-2xl font-semibold text-white mb-4">Discover New Tools</h2>
+                    <!-- ... (discover new tools content from your original snippet, now using actual tool objects if available) ... -->
+                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {% if discoverable_tools %}
+                            {% for tool in discoverable_tools %}
+                            <div class="bg-gray-800 rounded-xl shadow-lg p-5 group transform hover:-translate-y-1 transition-transform duration-300">
+                                <div class="flex items-center mb-3">
+                                    <div class="bg-{{ tool.accent_color_class|default:'gray' }}-500/20 p-2 rounded-lg mr-3">
+                                        <i class="{{ tool.font_awesome_icon_class|default:'fas fa-puzzle-piece' }} text-lg text-{{ tool.accent_color_class|default:'gray' }}-400"></i>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-white">{{ tool.name }}</h3>
+                                </div>
+                                <p class="text-gray-400 text-xs mb-3">{{ tool.short_description|truncatewords:10 }}</p>
+                                <a href="{{ tool.get_absolute_url }}" class="text-sm text-{{ tool.accent_color_class|default:'teal' }}-400 hover:text-{{ tool.accent_color_class|default:'teal' }}-300 font-medium group-hover:underline">
+                                    Learn More <i class="fas fa-angle-right ml-1"></i>
+                                </a>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-gray-400 md:col-span-4">No new tools to discover at the moment.</p>
+                        {% endif %}
+                    </div>
+                </section>
+            </div>
+
+            <!-- Placeholder content for other sections, to be included or loaded -->
+            <div id="my-tools-content" class="content-section space-y-8">
+                <!-- <h1 class="text-3xl font-bold text-white">My Tools</h1>
+                <p class="text-gray-400">This section will display all tools you have interacted with or marked as yours.</p> -->
+                {% include "dashboard_partials/my_tools.html"  %}
+            </div>
+
+            <div id="browse-tools-content" class="content-section space-y-8">
+                <!-- <h1 class="text-3xl font-bold text-white">Browse All Tools</h1>
+                <p class="text-gray-400">Explore the full catalog of available tools.</p> -->
+                {% include "dashboard_partials/browse_tools.html"  %}
+            </div>
+
+            <div id="favorites-content" class="content-section space-y-8">
+                <!-- <h1 class="text-3xl font-bold text-white">Favorite Tools</h1>
+                <p class="text-gray-400">Your collection of favorite tools for quick access.</p> -->
+                {% include "dashboard_partials/favorites.html"  %}
+            </div>
+
+            <div id="settings-content" class="content-section space-y-8">
+                <!-- <h1 class="text-3xl font-bold text-white">Account Settings</h1>
+                <p class="text-gray-400">Manage your profile, preferences, and security settings.</p> -->
+                {% include "dashboard_partials/settings.html"  %}
+            </div>
+
+            <div id="help-content" class="content-section space-y-8">
+                 <!-- <h1 class="text-3xl font-bold text-white">Help & Support</h1>
+                <p class="text-gray-400">Find answers to your questions or get in touch with support.</p> -->
+                {% include "dashboard_partials/help_and_support.html"  %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            const contentSections = document.querySelectorAll('.content-section');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
+
+            function showSection(targetId) {
+                // Hide all content sections
+                contentSections.forEach(section => {
+                    section.classList.remove('active');
+                });
+
+                // Show the target section
+                const targetSection = document.getElementById(targetId);
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                }
+
+                // Update active state for sidebar links
+                sidebarLinks.forEach(link => {
+                    if (link.dataset.target === targetId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    const targetId = this.dataset.target;
+                    showSection(targetId);
+
+                    // If it's a mobile menu link, close the mobile menu
+                    if (mobileMenu && mobileMenu.classList.contains('flex')) {
+                        mobileMenu.classList.add('hidden');
+                        mobileMenu.classList.remove('flex');
+                    }
+                });
+            });
+
+            // Mobile Menu Toggle
+            if (mobileMenuButton && mobileMenu && closeMobileMenuButton) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.remove('hidden');
+                    mobileMenu.classList.add('flex');
+                });
+
+                closeMobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                    mobileMenu.classList.remove('flex');
+                });
+            }
+
+            // Initialize: Show the 'main-content' section by default
+            // The 'active' class is already set in HTML for the initial dashboard view
+            // If you want to support deep linking via URL hash:
+            // const hash = window.location.hash.substring(1);
+            // if (hash && document.getElementById(hash)) {
+            //    showSection(hash);
+            // } else {
+            //    showSection('main-content'); // Default if no hash or invalid hash
+            // }
+            // For simplicity, we're starting with main-content active via HTML.
+        });
+    </script>
+</body>
+</html>

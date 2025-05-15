@@ -1,0 +1,116 @@
+{# your_app/templates/dashboard_partials/favorites.html #}
+
+<div class="space-y-6">
+    <div>
+        <h2 class="text-2xl font-semibold text-white mb-1">My Favorite Tools</h2>
+        <p class="text-gray-400">Quick access to your most cherished and frequently used tools.</p>
+    </div>
+
+    {% if favorite_tools_list %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for tool in favorite_tools_list %}
+                <div class="bg-gray-800 rounded-xl shadow-lg overflow-hidden group relative">
+                    {# Favorite indicator - could be a small heart icon on the card #}
+                    <div class="absolute top-3 right-3 z-10">
+                        <button class="p-2 bg-red-500/30 text-red-400 rounded-full hover:bg-red-500/50 transition-colors remove-favorite-btn" 
+                                data-tool-slug="{{ tool.slug }}" title="Remove from favorites">
+                            <i class="fas fa-heart text-sm"></i>
+                        </button>
+                    </div>
+
+                    {% if tool.banner_image %}
+                         <a href="{{ tool.get_absolute_url }}">
+                            <img src="{{ tool.banner_image.url }}" alt="{{ tool.name }} banner" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity">
+                        </a>
+                    {% else %}
+                        <div class="w-full h-32 bg-gradient-to-r from-{{ tool.accent_color_class|default:'gray' }}-700 to-{{ tool.accent_color_class|default:'gray' }}-800 flex items-center justify-center">
+                             <i class="{{ tool.font_awesome_icon_class|default:'fas fa-tools' }} text-4xl text-{{ tool.accent_color_class|default:'gray' }}-300 opacity-50"></i>
+                        </div>
+                    {% endif %}
+                    <div class="p-5">
+                        <h3 class="text-xl font-semibold text-white mb-1">
+                            <a href="{{ tool.get_absolute_url }}" class="hover:text-{{ tool.accent_color_class|default:'teal' }}-400 transition-colors">{{ tool.name }}</a>
+                        </h3>
+                        <p class="text-gray-400 text-sm mb-4 h-16 overflow-hidden">
+                            {{ tool.short_description|truncatechars:100 }}
+                        </p>
+                        <a href="{{ tool.get_launch_url }}" target="_blank"
+                           class="block w-full bg-{{ tool.accent_color_class|default:'teal' }}-600 hover:bg-{{ tool.accent_color_class|default:'teal' }}-500 text-white text-sm font-medium py-2 px-4 rounded-md transition-colors text-center">
+                            Launch Tool <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12 bg-gray-800/50 rounded-xl">
+            <i class="far fa-star text-5xl text-gray-500 mb-4"></i>
+            <p class="text-gray-400 text-lg mb-2">You haven't favorited any tools yet.</p>
+            <p class="text-gray-500 mb-6">Mark tools as favorite from their detail pages or listings for easy access.</p>
+             <a href="#" data-target="browse-tools-content" class="sidebar-link bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                Discover Tools
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{# Add JavaScript here or in a global dashboard JS file to handle 'remove-favorite-btn' clicks via AJAX #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const favoriteButtons = document.querySelectorAll('.remove-favorite-btn');
+    favoriteButtons.forEach(button => {
+        button.addEventListener('click', function(event) {
+            event.preventDefault();
+            const toolSlug = this.dataset.toolSlug;
+            // Confirm with user (optional)
+            if (confirm(`Are you sure you want to remove this tool from favorites?`)) {
+                // Make an AJAX call to a Django view to remove the favorite
+                // Example:
+                // fetch(`/api/tools/${toolSlug}/unfavorite/`, { method: 'POST', headers: {'X-CSRFToken': '{{ csrf_token }}'} })
+                // .then(response => response.json())
+                // .then(data => {
+                //     if (data.success) {
+                //         this.closest('.group').remove(); // Remove the card from the DOM
+                //         // Optionally update a favorites counter if you have one
+                //     } else {
+                //         alert('Failed to remove favorite. Please try again.');
+                //     }
+                // });
+                alert(`AJAX call to unfavorite tool: ${toolSlug} (CSRF token: {{ csrf_token }}) - Implement this!`);
+                // For now, just remove the card visually as a placeholder
+                this.closest('.group').remove();
+
+                // Check if no favorites are left and show empty state
+                const remainingFavorites = document.querySelectorAll('#favorites-content .group');
+                if (remainingFavorites.length === 0) {
+                    const favoritesContainer = document.querySelector('#favorites-content .grid');
+                    if (favoritesContainer) {
+                        favoritesContainer.innerHTML = `
+                            <div class="md:col-span-2 lg:col-span-3 text-center py-12 bg-gray-800/50 rounded-xl">
+                                <i class="far fa-star text-5xl text-gray-500 mb-4"></i>
+                                <p class="text-gray-400 text-lg mb-2">You haven't favorited any tools yet.</p>
+                                <p class="text-gray-500 mb-6">Mark tools as favorite for easy access.</p>
+                                <a href="#" data-target="browse-tools-content" class="sidebar-link bg-teal-600 hover:bg-teal-500 text-white font-semibold py-2 px-6 rounded-lg transition-colors">
+                                    Discover Tools
+                                </a>
+                            </div>
+                        `;
+                        // Re-attach event listeners if needed for the new "Discover Tools" button
+                        const newDiscoverButton = favoritesContainer.querySelector('.sidebar-link');
+                        if(newDiscoverButton) {
+                            newDiscoverButton.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                // Assuming your global SPA navigation function is accessible or re-implement showSection
+                                const targetId = this.dataset.target;
+                                // For demo, directly try to click the main sidebar link
+                                const mainSidebarLink = document.querySelector(`#sidebar-nav .sidebar-link[data-target='${targetId}']`);
+                                if(mainSidebarLink) mainSidebarLink.click();
+                            });
+                        }
+                    }
+                }
+            }
+        });
+    });
+});
+</script>

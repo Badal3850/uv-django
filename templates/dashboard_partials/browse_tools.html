@@ -1,0 +1,142 @@
+{# your_app/templates/dashboard_partials/browse_tools.html #}
+
+<div class="space-y-6">
+    <div>
+        <h2 class="text-2xl font-semibold text-white mb-1">Browse All Tools</h2>
+        <p class="text-gray-400">Discover the full range of powerful tools available on ToolVerse.</p>
+    </div>
+
+    <!-- Filters (Optional - Basic Example) -->
+    <div class="bg-gray-800/50 p-4 rounded-lg mb-6 md:flex md:items-center md:justify-between space-y-4 md:space-y-0">
+        <div class="relative w-full md:w-1/3">
+            <input type="search" id="tool-search-input" placeholder="Search tools..."
+                   class="w-full bg-gray-700 text-gray-200 placeholder-gray-400 border border-gray-600 rounded-lg py-2 px-4 pl-10 focus:ring-teal-500 focus:border-teal-500 transition-colors">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <i class="fas fa-search text-gray-400"></i>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            {# Basic Category Filter Example #}
+            {% if categories %}
+            <select id="category-filter" class="bg-gray-700 text-gray-200 border border-gray-600 rounded-lg py-2 px-3 focus:ring-teal-500 focus:border-teal-500">
+                <option value="">All Categories</option>
+                {% for category in categories %}
+                    <option value="{{ category.slug }}">{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button class="text-gray-400 hover:text-white p-2 rounded-md bg-gray-700 hover:bg-gray-600" title="Sort options">
+                <i class="fas fa-sort-amount-down"></i>
+            </button>
+        </div>
+    </div>
+
+    {% if all_tools_list %}
+        <div id="tool-grid-browse" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for tool in all_tools_list %}
+                <div class="tool-card-item bg-gray-800 rounded-xl shadow-lg overflow-hidden group transform hover:-translate-y-1 transition-transform duration-300"
+                     data-category="{{ tool.category.slug|default:'' }}" data-tags="{% for tag in tool.tags.all %}{{ tag.slug }} {% endfor %}" data-name="{{ tool.name|lower }}">
+                    {% if tool.banner_image %}
+                         <a href="{{ tool.get_absolute_url }}">
+                            <img src="{{ tool.banner_image.url }}" alt="{{ tool.name }} banner" class="w-full h-32 object-cover group-hover:opacity-80 transition-opacity">
+                        </a>
+                    {% else %}
+                        <div class="w-full h-32 bg-gradient-to-r from-{{ tool.accent_color_class|default:'gray' }}-700 to-{{ tool.accent_color_class|default:'gray' }}-800 flex items-center justify-center">
+                             <i class="{{ tool.font_awesome_icon_class|default:'fas fa-tools' }} text-4xl text-{{ tool.accent_color_class|default:'gray' }}-300 opacity-50"></i>
+                        </div>
+                    {% endif %}
+
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-2">
+                             <div>
+                                <h3 class="text-lg font-semibold text-white mb-0.5">
+                                    <a href="{{ tool.get_absolute_url }}" class="hover:text-{{ tool.accent_color_class|default:'teal' }}-400 transition-colors">{{ tool.name }}</a>
+                                </h3>
+                                {% if tool.category %}
+                                <a href="#" class="text-xs text-gray-500 hover:text-{{ tool.accent_color_class|default:'teal' }}-400 transition-colors">{{ tool.category.name }}</a>
+                                {% endif %}
+                            </div>
+                             <span class="text-xs px-2 py-1 rounded-full whitespace-nowrap
+                                {% if tool.access_type == 'free' or tool.access_type == 'open_source' %} bg-green-500/20 text-green-400
+                                {% elif tool.access_type == 'freemium' %} bg-yellow-500/20 text-yellow-400
+                                {% elif tool.access_type == 'paid' %} bg-red-500/20 text-red-400
+                                {% else %} bg-gray-600/20 text-gray-300
+                                {% endif %}">
+                                {{ tool.get_access_type_display }}
+                            </span>
+                        </div>
+                        
+                        <p class="text-gray-400 text-sm mb-3 h-12 overflow-hidden">
+                            {{ tool.short_description|truncatechars:80 }}
+                        </p>
+
+                        <div class="flex items-center space-x-2 mb-3">
+                            {% for tag in tool.tags.all|slice:":3" %} {# Show first 3 tags #}
+                                <span class="text-xs bg-gray-700 px-2 py-0.5 rounded text-gray-400">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="flex space-x-2">
+                            <a href="{{ tool.get_launch_url }}" target="_blank"
+                               class="flex-1 bg-{{ tool.accent_color_class|default:'teal' }}-600 hover:bg-{{ tool.accent_color_class|default:'teal' }}-500 text-white text-sm font-medium py-2 px-3 rounded-md transition-colors text-center">
+                                Launch
+                            </a>
+                            <a href="{{ tool.get_absolute_url }}"
+                               class="flex-1 border border-gray-600 hover:bg-gray-700 text-gray-300 text-sm font-medium py-2 px-3 rounded-md transition-colors text-center">
+                                Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12 bg-gray-800/50 rounded-xl">
+            <i class="fas fa-binoculars text-5xl text-gray-500 mb-4"></i>
+            <p class="text-gray-400 text-lg">No tools found in the catalog at the moment.</p>
+            <p class="text-gray-500">Please check back later or contact support if you believe this is an error.</p>
+        </div>
+    {% endif %}
+</div>
+
+{# Basic JavaScript for client-side filtering (can be enhanced or moved to a separate JS file) #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('tool-search-input');
+    const categoryFilter = document.getElementById('category-filter');
+    const toolGrid = document.getElementById('tool-grid-browse');
+    const toolCards = toolGrid ? Array.from(toolGrid.getElementsByClassName('tool-card-item')) : [];
+
+    function filterTools() {
+        if (!toolGrid) return;
+
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+        const selectedCategory = categoryFilter ? categoryFilter.value : '';
+        let visibleCount = 0;
+
+        toolCards.forEach(card => {
+            const toolName = card.dataset.name.toLowerCase();
+            const toolCategory = card.dataset.category;
+            // const toolTags = card.dataset.tags; // For tag-based filtering later
+
+            const nameMatch = toolName.includes(searchTerm);
+            const categoryMatch = selectedCategory === '' || toolCategory === selectedCategory;
+
+            if (nameMatch && categoryMatch) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        // You could add a "no results found" message here if visibleCount is 0
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterTools);
+    }
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', filterTools);
+    }
+});
+</script>
