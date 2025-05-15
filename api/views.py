@@ -5,6 +5,8 @@ from django.shortcuts import render
 from rest_framework.renderers import JSONRenderer
 import requests
 
+def home(request):
+    return render(request, 'home.html')
 
 def movie_list(request,pk):
     movies = Movie.objects.get(id=pk)

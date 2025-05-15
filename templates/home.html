@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-A">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolVerse - Your Gateway to Powerful Web Apps</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom animation for hero background */
+        @keyframes gradientBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .animated-gradient {
+            background: linear-gradient(-45deg, #007CF0, #00DFD8, #7928CA, #FF0080);
+            background-size: 400% 400%;
+            animation: gradientBackground 15s ease infinite;
+        }
+
+        /* Custom animation for text reveal (can be more complex with JS) */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeInDown {
+            animation: fadeInDown 0.8s ease-out forwards;
+        }
+        .delay-200 { animation-delay: 0.2s; opacity: 0; } /* Start hidden */
+        .delay-400 { animation-delay: 0.4s; opacity: 0; }
+        .delay-600 { animation-delay: 0.6s; opacity: 0; }
+
+        /* For scroll animations (requires JS for Intersection Observer) */
+        .reveal-on-scroll {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        .revealed {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 font-sans antialiased">
+
+    <!-- Navbar -->
+    <nav class="bg-gray-800/80 backdrop-blur-md shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <a href="#" class="text-2xl font-bold text-white hover:text-teal-400 transition-colors">
+                <i class="fas fa-tools mr-2"></i>ToolVerse
+            </a>
+            <div class="hidden md:flex space-x-4">
+                <a href="#hero" class="text-gray-300 hover:text-teal-400 transition-colors">Home</a>
+                <a href="#featured-apps" class="text-gray-300 hover:text-teal-400 transition-colors">Apps</a>
+                <a href="#why-us" class="text-gray-300 hover:text-teal-400 transition-colors">Features</a>
+                <a href="#" class="text-gray-300 hover:text-teal-400 transition-colors">About</a>
+                <a href="#" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">Login</a>
+            </div>
+            <div class="md:hidden">
+                <button id="nav-toggle" class="text-gray-300 hover:text-teal-400 focus:outline-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Nav -->
+        <div id="mobile-nav" class="md:hidden hidden bg-gray-800 p-4 space-y-2">
+            <a href="#hero" class="block text-gray-300 hover:text-teal-400 transition-colors">Home</a>
+            <a href="#featured-apps" class="block text-gray-300 hover:text-teal-400 transition-colors">Apps</a>
+            <a href="#why-us" class="block text-gray-300 hover:text-teal-400 transition-colors">Features</a>
+            <a href="#" class="block text-gray-300 hover:text-teal-400 transition-colors">About</a>
+            <a href="#" class="block bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center">Login</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="min-h-screen flex items-center justify-center animated-gradient text-white pt-20">
+        <div class="text-center p-6">
+            <h1 class="text-5xl md:text-7xl font-extrabold mb-6 animate-fadeInDown">
+                Discover <span class="text-teal-300">Powerful</span> Web Tools
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 text-gray-200 animate-fadeInDown delay-200">
+                Your ultimate hub for innovative, Python-powered applications designed to boost productivity and streamline your workflow.
+            </p>
+            <a href="#featured-apps"
+               class="bg-white text-gray-900 hover:bg-gray-200 font-bold py-3 px-8 rounded-lg text-lg shadow-xl
+                      transform hover:scale-105 transition-all duration-300 animate-fadeInDown delay-400">
+                Explore Tools <i class="fas fa-arrow-right ml-2"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- Why Us Section -->
+    <section id="why-us" class="py-16 md:py-24 bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 text-teal-400 reveal-on-scroll">
+                Why Choose ToolVerse?
+            </h2>
+            <div class="grid md:grid-cols-3 gap-8 text-center">
+                <div class="bg-gray-700/50 p-8 rounded-xl shadow-xl hover:shadow-teal-500/30 transition-shadow duration-300 reveal-on-scroll">
+                    <i class="fas fa-cogs text-5xl text-teal-400 mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-3 text-white">Python-Powered Precision</h3>
+                    <p class="text-gray-300">Leveraging Python's versatility for robust, scalable, and efficient backend solutions.</p>
+                </div>
+                <div class="bg-gray-700/50 p-8 rounded-xl shadow-xl hover:shadow-teal-500/30 transition-shadow duration-300 reveal-on-scroll delay-200">
+                    <i class="fas fa-rocket text-5xl text-teal-400 mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-3 text-white">Boost Your Productivity</h3>
+                    <p class="text-gray-300">Tools designed to automate tasks, simplify complex processes, and save you valuable time.</p>
+                </div>
+                <div class="bg-gray-700/50 p-8 rounded-xl shadow-xl hover:shadow-teal-500/30 transition-shadow duration-300 reveal-on-scroll delay-400">
+                    <i class="fas fa-shield-alt text-5xl text-teal-400 mb-6"></i>
+                    <h3 class="text-2xl font-semibold mb-3 text-white">Secure & Reliable</h3>
+                    <p class="text-gray-300">Built with security best practices, ensuring your data and operations are safe.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Apps Section -->
+    <section id="featured-apps" class="py-16 md:py-24 bg-gray-900">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 text-teal-400 reveal-on-scroll">
+                Featured Tools
+            </h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- App Card 1: DataScrape Pro -->
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-teal-500/20 p-3 rounded-lg mr-4 group-hover:bg-teal-500/40 transition-colors">
+                                <i class="fas fa-spider text-3xl text-teal-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">DataScrape Pro</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            Effortlessly extract data from any website. Schedule scrapes and export to multiple formats.
+                        </p>
+                        <a href="#" class="inline-block text-teal-400 hover:text-teal-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="bg-teal-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+                <!-- App Card 2: InsightAI Summarizer -->
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll delay-200">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-purple-500/20 p-3 rounded-lg mr-4 group-hover:bg-purple-500/40 transition-colors">
+                                <i class="fas fa-brain text-3xl text-purple-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">InsightAI Summarizer</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            Condense long articles and documents into concise summaries using advanced AI.
+                        </p>
+                        <a href="#" class="inline-block text-purple-400 hover:text-purple-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                     <div class="bg-purple-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+                <!-- App Card 3: AutoReport Gen -->
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll delay-400">
+                    <div class="p-6">
+                         <div class="flex items-center mb-4">
+                            <div class="bg-pink-500/20 p-3 rounded-lg mr-4 group-hover:bg-pink-500/40 transition-colors">
+                                <i class="fas fa-chart-pie text-3xl text-pink-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">AutoReport Gen</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            Generate beautiful, automated reports from your data sources on a schedule.
+                        </p>
+                        <a href="#" class="inline-block text-pink-400 hover:text-pink-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="bg-pink-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+                <!-- Add more app cards here: TaskFlow Scheduler, QuickMedia Optimizer -->
+                 <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-yellow-500/20 p-3 rounded-lg mr-4 group-hover:bg-yellow-500/40 transition-colors">
+                                <i class="fas fa-calendar-alt text-3xl text-yellow-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">TaskFlow Scheduler</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            A powerful cron-like scheduler with a web UI to manage recurring Python tasks.
+                        </p>
+                        <a href="#" class="inline-block text-yellow-400 hover:text-yellow-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="bg-yellow-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+                <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll delay-200">
+                    <div class="p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-500/20 p-3 rounded-lg mr-4 group-hover:bg-green-500/40 transition-colors">
+                                <i class="fas fa-images text-3xl text-green-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">QuickMedia Optimizer</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            Automatically compress and resize images & videos for web without quality loss.
+                        </p>
+                        <a href="#" class="inline-block text-green-400 hover:text-green-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                     <div class="bg-green-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+                 <div class="bg-gray-800 rounded-xl shadow-2xl overflow-hidden transform hover:scale-105 transition-transform duration-300 group reveal-on-scroll delay-400">
+                    <div class="p-6">
+                         <div class="flex items-center mb-4">
+                            <div class="bg-blue-500/20 p-3 rounded-lg mr-4 group-hover:bg-blue-500/40 transition-colors">
+                                <i class="fas fa-file-csv text-3xl text-blue-400"></i>
+                            </div>
+                            <h3 class="text-2xl font-semibold text-white">CSV Pro Toolkit</h3>
+                        </div>
+                        <p class="text-gray-300 mb-4">
+                            Manipulate, clean, and transform CSV/Excel files with powerful batch operations.
+                        </p>
+                        <a href="#" class="inline-block text-blue-400 hover:text-blue-300 font-semibold group-hover:underline">
+                            Learn More <i class="fas fa-angle-right ml-1"></i>
+                        </a>
+                    </div>
+                    <div class="bg-blue-600 h-2 w-0 group-hover:w-full transition-all duration-500"></div>
+                </div>
+
+
+            </div>
+            <div class="text-center mt-12 reveal-on-scroll delay-600">
+                <a href="#" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-8 rounded-lg text-lg shadow-lg
+                                  transform hover:scale-105 transition-all duration-300">
+                    View All Tools
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-16 md:py-24 bg-gray-800">
+        <div class="container mx-auto px-6">
+            <h2 class="text-3xl md:text-4xl font-bold text-center mb-12 text-teal-400 reveal-on-scroll">
+                Get Started in 3 Easy Steps
+            </h2>
+            <div class="flex flex-col md:flex-row justify-around items-center space-y-8 md:space-y-0 md:space-x-8">
+                <!-- Step 1 -->
+                <div class="text-center reveal-on-scroll">
+                    <div class="bg-teal-500/30 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border-2 border-teal-500">
+                        <i class="fas fa-mouse-pointer text-4xl text-teal-300"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">1. Explore & Choose</h3>
+                    <p class="text-gray-400 max-w-xs">Browse our curated collection and find the perfect tool for your needs.</p>
+                </div>
+                <!-- Arrow (desktop) -->
+                <div class="hidden md:block text-teal-500 text-3xl reveal-on-scroll delay-200">
+                    <i class="fas fa-long-arrow-alt-right"></i>
+                </div>
+                <!-- Step 2 -->
+                <div class="text-center reveal-on-scroll delay-200">
+                    <div class="bg-teal-500/30 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border-2 border-teal-500">
+                        <i class="fas fa-user-plus text-4xl text-teal-300"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">2. Sign Up / Log In</h3>
+                    <p class="text-gray-400 max-w-xs">Create an account or log in to access your dashboard and tools.</p>
+                </div>
+                <!-- Arrow (desktop) -->
+                <div class="hidden md:block text-teal-500 text-3xl reveal-on-scroll delay-400">
+                    <i class="fas fa-long-arrow-alt-right"></i>
+                </div>
+                <!-- Step 3 -->
+                <div class="text-center reveal-on-scroll delay-400">
+                    <div class="bg-teal-500/30 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-4 border-2 border-teal-500">
+                        <i class="fas fa-bolt text-4xl text-teal-300"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-2">3. Power Up Your Workflow</h3>
+                    <p class="text-gray-400 max-w-xs">Start using the tools immediately and experience enhanced productivity.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 md:py-24 animated-gradient">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="text-3xl md:text-4xl font-bold text-white mb-6 reveal-on-scroll">
+                Ready to Supercharge Your Tasks?
+            </h2>
+            <p class="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto reveal-on-scroll delay-200">
+                Join ToolVerse today and unlock a world of powerful web applications. New tools added regularly!
+            </p>
+            <a href="#"
+               class="bg-white text-gray-900 hover:bg-gray-200 font-bold py-3 px-10 rounded-lg text-lg shadow-xl
+                      transform hover:scale-105 transition-all duration-300 reveal-on-scroll delay-400">
+                Sign Up For Free
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 py-12">
+        <div class="container mx-auto px-6 text-center">
+            <div class="mb-4">
+                <a href="#" class="text-gray-400 hover:text-teal-400 mx-2 transition-colors">Privacy Policy</a>
+                <a href="#" class="text-gray-400 hover:text-teal-400 mx-2 transition-colors">Terms of Service</a>
+                <a href="#" class="text-gray-400 hover:text-teal-400 mx-2 transition-colors">Contact Us</a>
+            </div>
+            <p>© <span id="currentYear"></span> ToolVerse. All Rights Reserved. Built with Python & <i class="fas fa-heart text-red-500"></i>.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile Nav Toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const mobileNav = document.getElementById('mobile-nav');
+        if (navToggle && mobileNav) {
+            navToggle.addEventListener('click', () => {
+                mobileNav.classList.toggle('hidden');
+            });
+        }
+
+        // Smooth scroll for nav links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    // Close mobile nav if open after click
+                    if(!mobileNav.classList.contains('hidden')) {
+                        mobileNav.classList.add('hidden');
+                    }
+                }
+            });
+        });
+
+        // Current Year for Footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        // Simple Scroll Reveal Animation
+        const revealElements = document.querySelectorAll('.reveal-on-scroll');
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+                    // Optional: unobserve after revealing to save resources
+                    // revealObserver.unobserve(entry.target);
+                }
+                // Optional: unreveal when scrolling up
+                // else {
+                //     entry.target.classList.remove('revealed');
+                // }
+            });
+        }, {
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        });
+
+        revealElements.forEach(el => {
+            revealObserver.observe(el);
+        });
+
+    </script>
+</body>
+</html>
