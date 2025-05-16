@@ -1,0 +1,166 @@
+{% load account i18n %} {# Ensure allauth tags are loaded #}
+
+<div class="p-6 md:p-8">
+    <div id="auth-modal-header" class="text-center mb-6">
+        <h3 class="text-2xl font-bold text-white current-auth-title">{% trans "Sign In" %}</h3>
+        <p class="text-gray-400 text-sm mt-1 current-auth-subtitle">Access your ToolVerse account.</p>
+    </div>
+
+    <!-- Login Form Area -->
+    <div id="auth-login-form-area" class="auth-form-panel active">
+        <div id="modal-login-messages" class="my-3"></div> {# For AJAX messages #}
+
+        {# 'login_form' is an instance of allauth.account.forms.LoginForm #}
+        <form id="ajax-modal-login-form" class="space-y-4" method="POST" action="{% url 'account_login' %}">
+            {% csrf_token %}
+            
+            {# Allauth's LoginForm typically has 'login', 'password', 'remember' fields #}
+            <div>
+                {# Allauth's default rendering adds labels. If you want sr-only, customize or use CSS #}
+                {# <label for="{{ login_form.login.id_for_label }}" class="sr-only">Login</label> #}
+                {{ login_form.login.label_tag }}
+                {{ login_form.login }} {# This will render the input widget #}
+                <div id="error-modal-login-login" class="form-field-error mt-1">
+                    {% for error in login_form.login.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+
+            <div>
+                {{ login_form.password.label_tag }}
+                {{ login_form.password }}
+                <div id="error-modal-login-password" class="form-field-error mt-1">
+                    {% for error in login_form.password.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            </div>
+            
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center">
+                    {{ login_form.remember }}
+                    <label for="{{ login_form.remember.id_for_label }}" class="ml-2 text-gray-300">{% trans "Remember Me" %}</label>
+                </div>
+                <button type="button" class="font-medium text-teal-400 hover:text-teal-300 modal-trigger" data-modal-target="passwordResetModal">
+                    {% trans "Forgot Password?" %}
+                </button>
+            </div>
+
+            {% if login_form.non_field_errors %}
+                <div class="my-2 p-3 bg-red-600/30 text-red-300 rounded-md text-sm">
+                    {% for error in login_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+
+            <div>
+                <button type="submit" id="modal-login-submit-button"
+                        class="w-full group relative flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500">
+                    <span class="button-text">{% trans "Sign In" %}</span>
+                    <span class="spinner hidden animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-2"></span>
+                </button>
+            </div>
+            
+            {% if socialaccount_providers %}
+                <div class="mt-4">
+                    <div class="relative"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-600"></div></div><div class="relative flex justify-center text-sm"><span class="px-2 bg-gray-800 text-gray-400">{% trans "Or sign in with" %}</span></div></div>
+                    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
+                </div>
+            {% endif %}
+
+             <p class="mt-6 text-center text-sm text-gray-400">
+                {% trans "Not a member?" %}
+                <button type="button" class="auth-toggle-button font-medium text-teal-400 hover:text-teal-300" data-show-form="signup">
+                    {% trans "Sign Up" %}
+                </button>
+            </p>
+        </form>
+    </div>
+
+    <!-- Signup Form Area -->
+    <div id="auth-signup-form-area" class="auth-form-panel space-y-6" style="display: none;">
+        <div id="modal-signup-messages" class="my-3"></div>
+
+        {# 'signup_form' is an instance of allauth.account.forms.SignupForm #}
+        <form id="ajax-modal-signup-form" class="signup space-y-4" method="POST" action="{% url 'account_signup' %}">
+            {% csrf_token %}
+            {# Iterate through fields of allauth's SignupForm for individual styling control #}
+            {% for field in signup_form %}
+                <div>
+                    {% if field.is_hidden %}
+                        {{ field }}
+                    {% else %}
+                        {# You might want to hide labels if placeholders are clear enough, or style them explicitly #}
+                        {{ field.label_tag }} 
+                        {{ field }} {# Renders the widget #}
+                        {% if field.help_text %}
+                            <p class="text-xs text-gray-400 mt-1">{{ field.help_text|safe }}</p>
+                        {% endif %}
+                        <div id="error-modal-signup-{{ field.name }}" class="form-field-error mt-1">
+                            {% for error in field.errors %}<p>{{ error }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            {% if signup_form.non_field_errors %}
+                 <div class="my-2 p-3 bg-red-600/30 text-red-300 rounded-md text-sm">
+                    {% for error in signup_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+
+            <div>
+                <button type="submit" id="modal-signup-submit-button"
+                        class="w-full group relative flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500">
+                    <span class="button-text">{% trans "Sign Up" %}</span>
+                    <span class="spinner hidden animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-2"></span>
+                </button>
+            </div>
+             <p class="mt-6 text-center text-sm text-gray-400">
+                {% trans "Already have an account?" %}
+                <button type="button" class="auth-toggle-button font-medium text-teal-400 hover:text-teal-300" data-show-form="login">
+                    {% trans "Sign In" %}
+                </button>
+            </p>
+        </form>
+    </div>
+</div>
+
+<script>
+// This script applies Tailwind classes to the input fields rendered by {{ field }}
+// It should ideally be part of the main modal JS in base.html or a shared utility script
+// to avoid being re-declared if this partial is included multiple times (though less likely here).
+function styleAllauthFormField(fieldElement, fieldName) {
+    if (!fieldElement) return;
+    fieldElement.classList.add('appearance-none', 'relative', 'block', 'w-full', 'px-3', 'py-2.5', 'border', 'border-gray-700', 'bg-gray-900', 'placeholder-gray-500', 'text-gray-200', 'rounded-md', 'focus:outline-none', 'focus:ring-teal-500', 'focus:border-teal-500', 'sm:text-sm');
+    
+    // Add placeholders based on field name if label is hidden/sr-only
+    // This is just an example, adjust as per your allauth settings (username_required, etc.)
+    if (fieldName === 'login') {
+        fieldElement.placeholder = "{% if ACCOUNT_AUTHENTICATION_METHOD == 'email' %}{% filter escapejs %}{% trans 'Email address' %}{% endfilter %}{% elif ACCOUNT_AUTHENTICATION_METHOD == 'username' %}{% filter escapejs %}{% trans 'Username' %}{% endfilter %}{% else %}{% filter escapejs %}{% trans 'Username or Email' %}{% endfilter %}{% endif %}";
+    } else if (fieldName === 'email') {
+         fieldElement.placeholder = "{% filter escapejs %}{% trans 'Email address' %}{% endfilter %}";
+    } else if (fieldName === 'password') {
+        fieldElement.placeholder = "{% filter escapejs %}{% trans 'Password' %}{% endfilter %}";
+    } else if (fieldName === 'password2') {
+        fieldElement.placeholder = "{% filter escapejs %}{% trans 'Confirm Password' %}{% endfilter %}";
+    } else if (fieldName === 'username' && '{{ ACCOUNT_USERNAME_REQUIRED }}' === 'True') {
+         fieldElement.placeholder = "{% filter escapejs %}{% trans 'Username' %}{% endfilter %}";
+    }
+}
+
+document.querySelectorAll('#ajax-modal-login-form input, #ajax-modal-signup-form input').forEach(input => {
+    if (input.type !== 'hidden' && input.type !== 'checkbox' && input.type !== 'submit') {
+        styleAllauthFormField(input, input.name);
+    }
+});
+// For checkboxes, ensure label is correctly associated if not using {{ field.label_tag }}
+const rememberCheckbox = document.getElementById('{{ login_form.remember.id_for_label|default:"id_modal_remember" }}');
+if(rememberCheckbox) {
+    // Tailwind classes for checkbox already applied in HTML structure.
+}
+</script>

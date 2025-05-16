@@ -6,13 +6,41 @@ from api.forms import UserProfileForm # Assuming you create this
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
 from api.models import UserProfile # Assuming you create this
+from django.contrib.auth import logout
+from django.conf import settings
+from allauth.account.forms import LoginForm, SignupForm, ResetPasswordForm  # Import allauth forms
 
 
-def home(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard')
-    return render(request, 'home.html')
+def home_page(request):
+    context = {
+        'page_title': 'ToolVerse - Home',
+        # ... other homepage specific context ...
+    }
+    if not request.user.is_authenticated:
+        context['request'] = request # Pass request for allauth forms
+        context['login_form'] = LoginForm() # Pass request for allauth forms
+        context['signup_form'] = SignupForm()
+        print('signup_form', context['signup_form'])
+        context['password_reset_form'] = ResetPasswordForm () # For the separate password reset modal
+        # Pass allauth context variables needed by its templates if any
+        # These are often automatically available if using allauth's views directly,
+        # but for custom rendering in modals, you might need to pass them.
+        # Check allauth docs or source for what 'account/login.html' expects.
+        # Common ones: redirect_field_name, redirect_field_value, socialaccount_providers
+        from allauth.account.utils import get_request_param
+        context['redirect_field_name'] = get_request_param(request, "next") or "next" # from allauth login view
+        context['redirect_field_value'] = get_request_param(request, context['redirect_field_name'])
 
+        from allauth.socialaccount.templatetags.socialaccount import get_providers
+        providers = get_providers(context=context)
+        if providers:
+            context['socialaccount_providers'] = providers
+        
+        # For ACCOUNT_AUTHENTICATION_METHOD in placeholder
+        from allauth.account import app_settings as allauth_settings
+        context['LOGIN_METHODS'] = allauth_settings.LOGIN_METHODS
+        return render(request, 'home.html', context)
+    return render(request, 'dashboard.html', context)
 @login_required
 def dashboard_view(request):
     user = request.user
@@ -55,6 +83,12 @@ def dashboard_view(request):
         'page_title': 'Dashboard' # For setting browser tab title dynamically
     }
     return render(request, 'dashboard.html', context)
+
+def custom_logout_view(request):
+    logout(request)
+    # Redirect to LOGOUT_REDIRECT_URL or a specific page
+    redirect_url = getattr(settings, 'LOGOUT_REDIRECT_URL', 'home')
+    return redirect(redirect_url)
 
 def register_view(request):
     if request.method == 'POST':
