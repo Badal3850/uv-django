@@ -412,7 +412,8 @@
                     headers: {
                         'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
                         'X-Requested-With': 'XMLHttpRequest'
-                    }
+                    },
+                    credentials: 'include', // Include cookies for CSRF token
                 })
                 .then(data => {
                     if (data.ok) {
@@ -428,7 +429,7 @@
                             window.location.reload();
                         }
                     } else { // Error
-                        console.error('AJAX Error:', data.errors);
+                        console.error('AJAX Error:', data);
                         if (errorDisplayCallback) {
                             errorDisplayCallback(data.errors, data.message, messagesDiv, form);
                         } else { // Default error display
