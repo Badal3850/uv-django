@@ -1,166 +1,706 @@
-{% load account i18n %} {# Ensure allauth tags are loaded #}
-
-<div class="p-6 md:p-8">
-    <div id="auth-modal-header" class="text-center mb-6">
-        <h3 class="text-2xl font-bold text-white current-auth-title">{% trans "Sign In" %}</h3>
-        <p class="text-gray-400 text-sm mt-1 current-auth-subtitle">Access your ToolVerse account.</p>
+{% load account i18n %}
+{% load socialaccount %}
+<div class="auth-container bg-gray-900 rounded-lg shadow-xl max-w-md mx-auto">
+  <div class="p-6 md:p-8">
+    <!-- Auth Header -->
+    <div id="auth-modal-header" class="text-center mb-8">
+      <h3 class="text-2xl font-bold text-white current-auth-title">{% trans "Sign In" %}</h3>
+      <p class="text-gray-400 text-sm mt-2 current-auth-subtitle">Access your ToolVerse account.</p>
     </div>
 
     <!-- Login Form Area -->
     <div id="auth-login-form-area" class="auth-form-panel active">
-        <div id="modal-login-messages" class="my-3"></div> {# For AJAX messages #}
+      <div id="modal-login-form-messages" class="rounded-md p-4 mb-4 hidden"></div>
 
-        {# 'login_form' is an instance of allauth.account.forms.LoginForm #}
-        <form id="ajax-modal-login-form" class="space-y-4" method="POST" action="{% url 'account_login' %}">
-            {% csrf_token %}
-            
-            {# Allauth's LoginForm typically has 'login', 'password', 'remember' fields #}
-            <div>
-                {# Allauth's default rendering adds labels. If you want sr-only, customize or use CSS #}
-                {# <label for="{{ login_form.login.id_for_label }}" class="sr-only">Login</label> #}
-                {{ login_form.login.label_tag }}
-                {{ login_form.login }} {# This will render the input widget #}
-                <div id="error-modal-login-login" class="form-field-error mt-1">
-                    {% for error in login_form.login.errors %}<p>{{ error }}</p>{% endfor %}
-                </div>
-            </div>
-
-            <div>
-                {{ login_form.password.label_tag }}
-                {{ login_form.password }}
-                <div id="error-modal-login-password" class="form-field-error mt-1">
-                    {% for error in login_form.password.errors %}<p>{{ error }}</p>{% endfor %}
-                </div>
-            </div>
-            
-            {% if redirect_field_value %}
-                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+      <form id="ajax-modal-login-form" class="space-y-5" method="POST" action="{% url 'ajax_login' %}">
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="id_modal_login_email" class="block text-sm font-medium text-gray-300 mb-1">
+            {% if ACCOUNT_AUTHENTICATION_METHOD == 'email' %}
+              {% trans 'Email address' %}
+            {% elif ACCOUNT_AUTHENTICATION_METHOD == 'username' %}
+              {% trans 'Username' %}
+            {% else %}
+              {% trans 'Username or Email' %}
             {% endif %}
-
-            <div class="flex items-center justify-between text-sm">
-                <div class="flex items-center">
-                    {{ login_form.remember }}
-                    <label for="{{ login_form.remember.id_for_label }}" class="ml-2 text-gray-300">{% trans "Remember Me" %}</label>
-                </div>
-                <button type="button" class="font-medium text-teal-400 hover:text-teal-300 modal-trigger" data-modal-target="passwordResetModal">
-                    {% trans "Forgot Password?" %}
-                </button>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
             </div>
+            <input 
+              type="text" 
+              name="login" 
+              id="id_modal_login_email"
+              autocomplete="email"
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% if ACCOUNT_AUTHENTICATION_METHOD == 'email' %}{% trans 'Enter your email' %}{% elif ACCOUNT_AUTHENTICATION_METHOD == 'username' %}{% trans 'Enter your username' %}{% else %}{% trans 'Enter your username or email' %}{% endif %}"
+            >
+          </div>
+          <div id="error-modal-login-login" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
 
-            {% if login_form.non_field_errors %}
-                <div class="my-2 p-3 bg-red-600/30 text-red-300 rounded-md text-sm">
-                    {% for error in login_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-                </div>
-            {% endif %}
+        <div class="form-group">
+          <label for="id_modal_login_password" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Password" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              name="password" 
+              id="id_modal_login_password"
+              autocomplete="current-password" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Enter your password' %}"
+            >
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button" class="toggle-password text-gray-500 hover:text-gray-300 focus:outline-none" tabindex="-1">
+                <svg class="h-5 w-5 password-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+                <svg class="h-5 w-5 password-eye-open hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="error-modal-login-password" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+        
+        {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
 
+        <div class="flex items-center justify-between text-sm">
+          <div class="flex items-center">
+            <input 
+              id="id_modal_login_remember" 
+              name="remember" 
+              type="checkbox"
+              class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-600 rounded bg-gray-700"
+            >
+            <label for="id_modal_login_remember" class="ml-2 text-gray-300">{% trans "Remember Me" %}</label>
+          </div>
+          <button 
+            type="button" 
+            class="font-medium text-teal-500 hover:text-teal-400 transition duration-150 modal-trigger" 
+            data-modal-target="passwordResetModal"
+            id="forgot-password-link"
+          >
+            {% trans "Forgot Password?" %}
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <button 
+            type="submit" 
+            id="modal-login-submit-button" 
+            class="w-full group relative flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150"
+          >
+            <span class="button-text">{% trans "Sign In" %}</span>
+            <span class="spinner hidden absolute right-4 top-1/2 transform -translate-y-1/2">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+        
+        <!-- Social Login Section -->
+        {% if socialaccount_providers %}
+        <div class="mt-6">
+          <div class="relative">
+            <div class="absolute inset-0 flex items-center">
+              <div class="w-full border-t border-gray-700"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+              <span class="px-2 bg-gray-900 text-gray-400">{% trans "Or continue with" %}</span>
+            </div>
+          </div>
+          
+          <div class="mt-6 grid grid-cols-3 gap-3">
+            {% for provider in socialaccount_providers %}
             <div>
-                <button type="submit" id="modal-login-submit-button"
-                        class="w-full group relative flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500">
-                    <span class="button-text">{% trans "Sign In" %}</span>
-                    <span class="spinner hidden animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-2"></span>
-                </button>
+              <a 
+                href="{% provider_login_url provider.id process=process scope=scope auth_params=auth_params %}"
+                class="w-full flex justify-center py-2 px-4 border border-gray-700 rounded-md shadow-sm bg-gray-800 text-sm font-medium text-gray-300 hover:bg-gray-700 transition duration-150"
+              >
+                <span class="sr-only">Sign in with {{ provider.name }}</span>
+                {% if provider.id == 'google' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                </svg>
+                {% elif provider.id == 'facebook' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" clip-rule="evenodd" />
+                </svg>
+                {% elif provider.id == 'github' %}
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                </svg>
+                {% else %}
+                <span>{{ provider.name }}</span>
+                {% endif %}
+              </a>
             </div>
-            
-            {% if socialaccount_providers %}
-                <div class="mt-4">
-                    <div class="relative"><div class="absolute inset-0 flex items-center"><div class="w-full border-t border-gray-600"></div></div><div class="relative flex justify-center text-sm"><span class="px-2 bg-gray-800 text-gray-400">{% trans "Or sign in with" %}</span></div></div>
-                    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-                </div>
-            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
 
-             <p class="mt-6 text-center text-sm text-gray-400">
-                {% trans "Not a member?" %}
-                <button type="button" class="auth-toggle-button font-medium text-teal-400 hover:text-teal-300" data-show-form="signup">
-                    {% trans "Sign Up" %}
-                </button>
-            </p>
-        </form>
+        <p class="mt-6 text-center text-sm text-gray-400">
+          {% trans "Not a member?" %}
+          <button type="button" class="auth-toggle-button font-medium text-teal-500 hover:text-teal-400 transition duration-150" data-show-form="signup">
+            {% trans "Sign Up" %}
+          </button>
+        </p>
+      </form>
     </div>
 
     <!-- Signup Form Area -->
-    <div id="auth-signup-form-area" class="auth-form-panel space-y-6" style="display: none;">
-        <div id="modal-signup-messages" class="my-3"></div>
+    <div id="auth-signup-form-area" class="auth-form-panel" style="display: none;">
+      <div id="modal-signup-form-messages" class="rounded-md p-4 mb-4 hidden"></div>
 
-        {# 'signup_form' is an instance of allauth.account.forms.SignupForm #}
-        <form id="ajax-modal-signup-form" class="signup space-y-4" method="POST" action="{% url 'account_signup' %}">
-            {% csrf_token %}
-            {# Iterate through fields of allauth's SignupForm for individual styling control #}
-            {% for field in signup_form %}
-                <div>
-                    {% if field.is_hidden %}
-                        {{ field }}
-                    {% else %}
-                        {# You might want to hide labels if placeholders are clear enough, or style them explicitly #}
-                        {{ field.label_tag }} 
-                        {{ field }} {# Renders the widget #}
-                        {% if field.help_text %}
-                            <p class="text-xs text-gray-400 mt-1">{{ field.help_text|safe }}</p>
-                        {% endif %}
-                        <div id="error-modal-signup-{{ field.name }}" class="form-field-error mt-1">
-                            {% for error in field.errors %}<p>{{ error }}</p>{% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            {% endfor %}
-
-            {% if redirect_field_value %}
-                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
-            {% endif %}
-
-            {% if signup_form.non_field_errors %}
-                 <div class="my-2 p-3 bg-red-600/30 text-red-300 rounded-md text-sm">
-                    {% for error in signup_form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
-                </div>
-            {% endif %}
-
-            <div>
-                <button type="submit" id="modal-signup-submit-button"
-                        class="w-full group relative flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-teal-500">
-                    <span class="button-text">{% trans "Sign Up" %}</span>
-                    <span class="spinner hidden animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white ml-2"></span>
-                </button>
+      <form id="ajax-modal-signup-form" class="signup space-y-5" method="POST" action="{% url 'ajax_signup' %}">
+        {% csrf_token %}
+        
+        <!-- Email Field -->
+        <div class="form-group">
+          <label for="id_modal_signup_email" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Email" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
             </div>
-             <p class="mt-6 text-center text-sm text-gray-400">
-                {% trans "Already have an account?" %}
-                <button type="button" class="auth-toggle-button font-medium text-teal-400 hover:text-teal-300" data-show-form="login">
-                    {% trans "Sign In" %}
-                </button>
-            </p>
-        </form>
+            <input 
+              type="email" 
+              name="email" 
+              id="id_modal_signup_email" 
+              autocomplete="email" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Enter your email address' %}"
+            >
+          </div>
+          <div id="error-modal-signup-email" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+
+        <!-- Username Field (if ACCOUNT_USERNAME_REQUIRED) -->
+        {% if ACCOUNT_USERNAME_REQUIRED %}
+        <div class="form-group">
+          <label for="id_modal_signup_username" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Username" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              name="username" 
+              id="id_modal_signup_username" 
+              autocomplete="username" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Choose a username' %}"
+            >
+          </div>
+          <div id="error-modal-signup-username" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+        {% endif %}
+
+        <!-- Password Field 1 -->
+        <div class="form-group">
+          <label for="id_modal_signup_password1" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Password" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              name="password1" 
+              id="id_modal_signup_password1" 
+              autocomplete="new-password" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Create a strong password' %}"
+            >
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button" class="toggle-password text-gray-500 hover:text-gray-300 focus:outline-none" tabindex="-1">
+                <svg class="h-5 w-5 password-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+                <svg class="h-5 w-5 password-eye-open hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="error-modal-signup-password1" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+        
+        <!-- Password Field 2 (Confirmation) -->
+        <div class="form-group">
+          <label for="id_modal_signup_password2" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Confirm Password" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd" />
+              </svg>
+            </div>
+            <input 
+              type="password" 
+              name="password2" 
+              id="id_modal_signup_password2" 
+              autocomplete="new-password" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Confirm your password' %}"
+            >
+            <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
+              <button type="button" class="toggle-password text-gray-500 hover:text-gray-300 focus:outline-none" tabindex="-1">
+                <svg class="h-5 w-5 password-eye-closed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" />
+                </svg>
+                <svg class="h-5 w-5 password-eye-open hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" />
+                  <path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          <div id="error-modal-signup-password2" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+
+        {% if redirect_field_value %}
+          <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+        {% endif %}
+
+        <div class="mt-6">
+          <button 
+            type="submit" 
+            id="modal-signup-submit-button" 
+            class="w-full group relative flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150"
+          >
+            <span class="button-text">{% trans "Sign Up" %}</span>
+            <span class="spinner hidden absolute right-4 top-1/2 transform -translate-y-1/2">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+        <p class="mt-6 text-center text-sm text-gray-400">
+          {% trans "Already have an account?" %}
+          <button type="button" class="auth-toggle-button font-medium text-teal-500 hover:text-teal-400 transition duration-150" data-show-form="login">
+            {% trans "Sign In" %}
+          </button>
+        </p>
+      </form>
     </div>
-</div>
-
-<script>
-// This script applies Tailwind classes to the input fields rendered by {{ field }}
-// It should ideally be part of the main modal JS in base.html or a shared utility script
-// to avoid being re-declared if this partial is included multiple times (though less likely here).
-function styleAllauthFormField(fieldElement, fieldName) {
-    if (!fieldElement) return;
-    fieldElement.classList.add('appearance-none', 'relative', 'block', 'w-full', 'px-3', 'py-2.5', 'border', 'border-gray-700', 'bg-gray-900', 'placeholder-gray-500', 'text-gray-200', 'rounded-md', 'focus:outline-none', 'focus:ring-teal-500', 'focus:border-teal-500', 'sm:text-sm');
     
-    // Add placeholders based on field name if label is hidden/sr-only
-    // This is just an example, adjust as per your allauth settings (username_required, etc.)
-    if (fieldName === 'login') {
-        fieldElement.placeholder = "{% if ACCOUNT_AUTHENTICATION_METHOD == 'email' %}{% filter escapejs %}{% trans 'Email address' %}{% endfilter %}{% elif ACCOUNT_AUTHENTICATION_METHOD == 'username' %}{% filter escapejs %}{% trans 'Username' %}{% endfilter %}{% else %}{% filter escapejs %}{% trans 'Username or Email' %}{% endfilter %}{% endif %}";
-    } else if (fieldName === 'email') {
-         fieldElement.placeholder = "{% filter escapejs %}{% trans 'Email address' %}{% endfilter %}";
-    } else if (fieldName === 'password') {
-        fieldElement.placeholder = "{% filter escapejs %}{% trans 'Password' %}{% endfilter %}";
-    } else if (fieldName === 'password2') {
-        fieldElement.placeholder = "{% filter escapejs %}{% trans 'Confirm Password' %}{% endfilter %}";
-    } else if (fieldName === 'username' && '{{ ACCOUNT_USERNAME_REQUIRED }}' === 'True') {
-         fieldElement.placeholder = "{% filter escapejs %}{% trans 'Username' %}{% endfilter %}";
-    }
-}
+    <!-- Username Recovery Form Area -->
+    <div id="auth-username-recovery-form-area" class="auth-form-panel" style="display: none;">
+      <div id="modal-username-recovery-messages" class="rounded-md p-4 mb-4 hidden"></div>
 
-document.querySelectorAll('#ajax-modal-login-form input, #ajax-modal-signup-form input').forEach(input => {
-    if (input.type !== 'hidden' && input.type !== 'checkbox' && input.type !== 'submit') {
-        styleAllauthFormField(input, input.name);
+      <form id="ajax-modal-username-recovery-form" class="space-y-5" method="POST" action="{% url 'ajax_username_recover' %}">
+      <!-- <form id="ajax-modal-username-recovery-form" class="space-y-5" method="POST" action=""> -->
+        {% csrf_token %}
+        
+        <div class="form-group">
+          <label for="id_modal_recover_email" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Email" %}</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+              </svg>
+            </div>
+            <input 
+              type="email" 
+              name="email" 
+              id="id_modal_recover_email" 
+              autocomplete="email" 
+              required
+              class="appearance-none block w-full pl-10 pr-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-150"
+              placeholder="{% trans 'Enter your email address' %}"
+            >
+          </div>
+          <div id="error-modal-recover-email" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+
+        <div class="mt-6">
+          <button 
+            type="submit" 
+            id="modal-recover-submit-button" 
+            class="w-full group relative flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150"
+          >
+            <span class="button-text">{% trans "Recover Username" %}</span>
+            <span class="spinner hidden absolute right-4 top-1/2 transform -translate-y-1/2">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+        <p class="mt-6 text-center text-sm text-gray-400">
+          {% trans "Remember your username?" %}
+          <button type="button" class="auth-toggle-button font-medium text-teal-500 hover:text-teal-400 transition duration-150" data-show-form="login">
+            {% trans "Sign In" %}
+          </button>
+        </p>
+      </form>
+    </div>
+
+    <!-- Password Reset Form Area -->
+    <div id="auth-password-reset-form-area" class="auth-form-panel" style="display: none;">
+      <div id="modal-password-reset-messages" class="rounded-md p-4 mb-4 hidden"></div>
+
+      <form id="ajax-modal-password-reset-form" class="space-y-5" method="POST" action="{% url 'ajax_password_reset' %}">
+        {% csrf_token %}
+
+        <div class="form-group">
+          <label for="id_modal_reset_email" class="block text-sm font-medium text-gray-300 mb-1">{% trans "Email" %}</label>
+          <div class="relative">
+            <input 
+              type="email" 
+              name="email" 
+              id="id_modal_reset_email" 
+              required 
+              autocomplete="email"
+              class="appearance-none block w-full px-3 py-3 border border-gray-700 bg-gray-800 text-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="{% trans 'Enter your email address' %}"
+            >
+          </div>
+          <div id="error-modal-reset-email" class="form-field-error mt-1 text-red-500 text-sm"></div>
+        </div>
+
+        <div class="mt-6">
+          <button 
+            type="submit" 
+            id="modal-reset-submit-button" 
+            class="w-full group relative flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500"
+          >
+            <span class="button-text">{% trans "Send Reset Link" %}</span>
+            <span class="spinner hidden absolute right-4 top-1/2 transform -translate-y-1/2">
+              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </span>
+          </button>
+        </div>
+
+        <p class="mt-6 text-center text-sm text-gray-400">
+          {% trans "Remember your password?" %}
+          <button type="button" class="auth-toggle-button font-medium text-teal-500 hover:text-teal-400 transition duration-150" data-show-form="login">
+            {% trans "Sign In" %}
+          </button>
+        </p>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% block extra_scripts %}
+<script>
+  /**
+  * ToolVerse Authentication System
+  * Handles login, signup, password reset, and username recovery via AJAX
+  */
+
+  document.addEventListener('DOMContentLoaded', function() {
+    // Form references
+    const loginForm = document.getElementById('ajax-modal-login-form');
+    const signupForm = document.getElementById('ajax-modal-signup-form');
+    const passwordResetForm = document.getElementById('ajax-modal-password-reset-form');
+    const usernameRecoveryForm = document.getElementById('ajax-modal-username-recovery-form');
+
+    // Panel references
+    const loginPanel = document.getElementById('auth-login-form-area');
+    const signupPanel = document.getElementById('auth-signup-form-area');
+    const passwordResetPanel = document.getElementById('auth-password-reset-form-area');
+    const usernameRecoveryPanel = document.getElementById('auth-username-recovery-form-area');
+
+    // Header references
+    const authTitle = document.querySelector('.current-auth-title');
+    const authSubtitle = document.querySelector('.current-auth-subtitle');
+
+    // Toggle buttons
+    const toggleButtons = document.querySelectorAll('.auth-toggle-button');
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    
+    // Password visibility toggle
+    const togglePasswordButtons = document.querySelectorAll('.toggle-password');
+
+    /**
+    * UI Functions
+    */
+    
+    // Show the specified form and hide others
+    function showFormPanel(formName) {
+      // Hide all panels first
+      [loginPanel, signupPanel, passwordResetPanel, usernameRecoveryPanel].forEach(panel => {
+        if (panel) panel.style.display = 'none';
+      });
+
+      // Update header based on form type
+      updateAuthHeader(formName);
+      
+      // Show the requested panel
+      switch(formName) {
+        case 'login':
+          loginPanel.style.display = 'block';
+          break;
+        case 'signup':
+          signupPanel.style.display = 'block';
+          break;
+        case 'reset-password':
+          passwordResetPanel.style.display = 'block';
+          break;
+        case 'recover-username':
+          usernameRecoveryPanel.style.display = 'block';
+          break;
+      }
     }
-});
-// For checkboxes, ensure label is correctly associated if not using {{ field.label_tag }}
-const rememberCheckbox = document.getElementById('{{ login_form.remember.id_for_label|default:"id_modal_remember" }}');
-if(rememberCheckbox) {
-    // Tailwind classes for checkbox already applied in HTML structure.
-}
+
+    // Update the auth header based on form type
+    function updateAuthHeader(formName) {
+      switch(formName) {
+        case 'login':
+          authTitle.textContent = 'Sign In';
+          authSubtitle.textContent = 'Access your ToolVerse account.';
+          break;
+        case 'signup':
+          authTitle.textContent = 'Create Account';
+          authSubtitle.textContent = 'Join ToolVerse to get started.';
+          break;
+        case 'reset-password':
+          authTitle.textContent = 'Reset Password';
+          authSubtitle.textContent = 'We\'ll send you a link to reset your password.';
+          break;
+        case 'recover-username':
+          authTitle.textContent = 'Recover Username';
+          authSubtitle.textContent = 'We\'ll send your username to your email address.';
+          break;
+      }
+    }
+
+    // Toggle password visibility
+    function togglePasswordVisibility(event) {
+      const button = event.currentTarget;
+      const input = button.closest('.relative').querySelector('input[type="password"], input[type="text"]');
+      const eyeClosed = button.querySelector('.password-eye-closed');
+      const eyeOpen = button.querySelector('.password-eye-open');
+
+      if (input.type === 'password') {
+        input.type = 'text';
+        eyeClosed.classList.add('hidden');
+        eyeOpen.classList.remove('hidden');
+      } else {
+        input.type = 'password';
+        eyeClosed.classList.remove('hidden');
+        eyeOpen.classList.add('hidden');
+      }
+    }
+
+    // Display form errors
+    function displayErrors(formId, errors) {
+      // Clear existing errors first
+      document.querySelectorAll(`#${formId} .form-field-error`).forEach(el => {
+        el.textContent = '';
+      });
+      
+      // Clear non-field errors
+      const messageContainer = document.getElementById(formId.replace('ajax-modal-', 'modal-') + '-messages');
+      messageContainer.classList.add('hidden');
+      messageContainer.innerHTML = '';
+
+      // Process non-field errors
+      if (errors.__all__ || errors.non_field_errors) {
+        const nonFieldErrors = errors.__all__ || errors.non_field_errors;
+        messageContainer.classList.remove('hidden');
+        messageContainer.classList.add('bg-red-900', 'text-red-100');
+        
+        const errorList = Array.isArray(nonFieldErrors) ? nonFieldErrors : [nonFieldErrors];
+        errorList.forEach(error => {
+          const errorElement = document.createElement('div');
+          errorElement.textContent = error;
+          messageContainer.appendChild(errorElement);
+        });
+      }
+
+      // Process field errors
+      for (const [field, errorMessages] of Object.entries(errors)) {
+        if (field !== '__all__' && field !== 'non_field_errors') {
+          const errorElement = document.getElementById(`error-${formId.replace('ajax-', '').replace('-form','')}-${field}`);
+          if (errorElement) {
+            errorElement.classList.remove('hidden');
+            errorElement.textContent = Array.isArray(errorMessages) ? errorMessages[0] : errorMessages;
+          }
+        }
+      }
+    }
+
+    // Display success message
+    function displaySuccess(formId, message) {
+      const messageContainer = document.getElementById(formId.replace('ajax-modal-', 'modal-') + '-messages');
+      messageContainer.classList.remove('hidden', 'bg-red-900', 'text-red-100');
+      messageContainer.classList.add('bg-green-900', 'text-green-100');
+      messageContainer.innerHTML = `<div>${message}</div>`;
+    }
+
+    // Toggle loading state for buttons
+    function toggleLoading(button, isLoading) {
+      const buttonText = button.querySelector('.button-text');
+      const spinner = button.querySelector('.spinner');
+      
+      if (isLoading) {
+        button.disabled = true;
+        buttonText.classList.add('opacity-0');
+        spinner.classList.remove('hidden');
+      } else {
+        button.disabled = false;
+        buttonText.classList.remove('opacity-0');
+        spinner.classList.add('hidden');
+      }
+    }
+
+    /**
+    * AJAX form submission functions
+    */
+    
+    // Submit form via AJAX
+    async function submitForm(form, submitButton) {
+      toggleLoading(submitButton, true);
+      
+      try {
+        // Get CSRF token
+        const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        
+        // Create form data
+        const formData = new FormData(form);
+        
+        // Make AJAX request
+        const response = await fetch(form.action, {
+          method: 'POST',
+          headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: formData,
+        });
+        
+        // Parse response
+        const data = await response.json();
+        
+        if (data.success) {
+          // Handle successful submission
+          if (data.redirect_url) {
+            // Redirect if URL provided
+            window.location.href = data.redirect_url;
+          } else {
+            // Display success message
+            displaySuccess(form.id, data.message);
+            
+            // Reset form if not redirecting
+            form.reset();
+            
+            // For password reset and username recovery, show login form after 3 seconds
+            if (form.id === 'ajax-modal-password-reset-form' || form.id === 'ajax-modal-username-recovery-form') {
+              setTimeout(() => {
+                showFormPanel('login');
+              }, 3000);
+            }
+          }
+        } else {
+          // Display errors
+          displayErrors(form.id, data.errors);
+        }
+      } catch (error) {
+        // Display generic error
+        const messageContainer = document.getElementById(form.id.replace('ajax-modal-', 'modal-') + '-messages');
+        messageContainer.classList.remove('hidden');
+        messageContainer.classList.add('bg-red-900', 'text-red-100');
+        messageContainer.innerHTML = '<div>An unexpected error occurred. Please try again later.</div>';
+      } finally {
+        toggleLoading(submitButton, false);
+      }
+    }
+
+    /**
+    * Event Listeners
+    */
+    
+    // Form submissions
+    if (loginForm) {
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm(this, document.getElementById('modal-login-submit-button'));
+      });
+    }
+    
+    if (signupForm) {
+      signupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm(this, document.getElementById('modal-signup-submit-button'));
+      });
+    }
+    
+    if (passwordResetForm) {
+      passwordResetForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm(this, document.getElementById('modal-reset-submit-button'));
+      });
+    }
+    
+    if (usernameRecoveryForm) {
+      usernameRecoveryForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        submitForm(this, document.getElementById('modal-recover-submit-button'));
+      });
+    }
+    
+    // Form toggle buttons
+    toggleButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const formToShow = this.getAttribute('data-show-form');
+        showFormPanel(formToShow);
+      });
+    });
+    
+    // Forgot password link
+    if (forgotPasswordLink) {
+      forgotPasswordLink.addEventListener('click', function() {
+        showFormPanel('reset-password');
+      });
+    }
+    
+    // Password visibility toggles
+    togglePasswordButtons.forEach(button => {
+      button.addEventListener('click', togglePasswordVisibility);
+    });
+  });
 </script>
+{% endblock %}

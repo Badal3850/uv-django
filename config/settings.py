@@ -99,15 +99,32 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-CSRF_TRUSTED_ORIGINS = [
-    'https://dqamzubqns.ap-south-1.awsapprunner.com '
-]
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
-CORS_ALLOWED_ORIGINS = [
-    "https://dqamzubqns.ap-south-1.awsapprunner.com",
-]
-CORS_ALLOW_CREDENTIALS = True
+# Get your App Runner service URL. 
+# You can get this from the App Runner console (e.g., https://<your-service-id>.<region>.awsapprunner.com)
+# or your custom domain if you've configured one.
+APP_RUNNER_URL = os.environ.get('APP_RUNNER_URL') # Good to set via environment variable
+
+CSRF_TRUSTED_ORIGINS = []
+if APP_RUNNER_URL:
+    CSRF_TRUSTED_ORIGINS.append(APP_RUNNER_URL)
+
+# If you have a custom domain mapped to App Runner:
+CUSTOM_DOMAIN = os.environ.get('CUSTOM_DOMAIN_URL') # e.g., https://toolverse.yourdomain.com
+if CUSTOM_DOMAIN:
+    CSRF_TRUSTED_ORIGINS.append(CUSTOM_DOMAIN)
+
+# For local development, you might have:
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS.extend([
+        'http://localhost:8000',
+        'http://127.0.0.1:8000',
+    ])
+
+# If CSRF_TRUSTED_ORIGINS is empty after trying to get from env, 
+# you might need to hardcode it for App Runner initially for testing,
+# but environment variables are better.
+# Example:
+# CSRF_TRUSTED_ORIGINS = ['https://<your-service-id>.<region>.awsapprunner.com']
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
@@ -130,13 +147,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
+MANUAL_AUTH_NEW_USER_ACTIVE_DEFAULT = True # Default to active for new users
 LOGIN_URL = 'account_login'
-LOGIN_REDIRECT_URL = 'dashboard'
+LOGIN_REDIRECT_URL = 'dashboard/'
 LOGOUT_REDIRECT_URL = 'home' # Or wherever you want to redirect after logout
 
 # All auth settings
-ACCOUNT_ADAPTER = 'api.adapters.AjaxAccountAdapter' 
 SITE_ID = 1
 AUTHENTICATION_BACKENDS = [
     # Needed to login by username in Django admin, regardless of `allauth`
@@ -150,5 +166,12 @@ ACCOUNT_LOGIN_METHODS = {'email'}
 ACCOUNT_EMAIL_VERIFICATION = 'optional' # Or 'optional', or 'none'
 ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
 ACCOUNT_LOGOUT_ON_GET = True # Logout on GET request to the logout URL
-# For email sending (configure your email backend)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend' # For development
+ACCOUNT_USERNAME_REQUIRED = False
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.yourprovider.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'your_email@domain.com'
+EMAIL_HOST_PASSWORD = 'your_password'
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = 'ToolVerse <noreply@toolverse.com>'

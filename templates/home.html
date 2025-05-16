@@ -51,10 +51,6 @@
 {% endblock extra_styles %}
 
 {% block navbar %}
-    {# The homepage uses the default navbar from base.html.
-       If you wanted a transparent-on-top-then-solid-on-scroll navbar for ONLY the homepage,
-       you would override this block and implement that custom navbar logic here.
-       For now, we'll assume the base navbar is sufficient or you'll add that later. #}
     {{ block.super }} {# This includes the navbar from base.html #}
 {% endblock navbar %}
 

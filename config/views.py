@@ -14,19 +14,9 @@ from allauth.account.forms import LoginForm, SignupForm, ResetPasswordForm  # Im
 def home_page(request):
     context = {
         'page_title': 'ToolVerse - Home',
-        # ... other homepage specific context ...
     }
     if not request.user.is_authenticated:
-        context['request'] = request # Pass request for allauth forms
-        context['login_form'] = LoginForm() # Pass request for allauth forms
-        context['signup_form'] = SignupForm()
-        print('signup_form', context['signup_form'])
-        context['password_reset_form'] = ResetPasswordForm () # For the separate password reset modal
-        # Pass allauth context variables needed by its templates if any
-        # These are often automatically available if using allauth's views directly,
-        # but for custom rendering in modals, you might need to pass them.
-        # Check allauth docs or source for what 'account/login.html' expects.
-        # Common ones: redirect_field_name, redirect_field_value, socialaccount_providers
+        context['request'] = request 
         from allauth.account.utils import get_request_param
         context['redirect_field_name'] = get_request_param(request, "next") or "next" # from allauth login view
         context['redirect_field_value'] = get_request_param(request, context['redirect_field_name'])
@@ -41,6 +31,8 @@ def home_page(request):
         context['LOGIN_METHODS'] = allauth_settings.LOGIN_METHODS
         return render(request, 'home.html', context)
     return render(request, 'dashboard.html', context)
+
+
 @login_required
 def dashboard_view(request):
     user = request.user
@@ -90,51 +82,15 @@ def custom_logout_view(request):
     redirect_url = getattr(settings, 'LOGOUT_REDIRECT_URL', 'home')
     return redirect(redirect_url)
 
-def register_view(request):
-    if request.method == 'POST':
-        form = UserCreationForm(request.POST) # Or your custom form
-        if form.is_valid():
-            form.save()
-            username = form.cleaned_data.get('username')
-            messages.success(request, f'Account created for {username}! You can now log in.')
-            return redirect('login') # Redirect to login page after successful registration
-        else:
-            messages.error(request, 'Error creating account. Please try again.')
-    else:
-        form = UserCreationForm() # Or your custom form
-    return render(request, 'register.html', {'form': form})
 
-@login_required
-def update_profile_view(request):
-    profile, created = UserProfile.objects.get_or_create(user=request.user)
-    if request.method == 'POST':
-        # Handle User model fields if separate
-        request.user.first_name = request.POST.get('first_name', request.user.first_name)
-        request.user.last_name = request.POST.get('last_name', request.user.last_name)
-        request.user.save()
-
-        form = UserProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('dashboard') # Or back to settings with data-target=#settings-content
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
-        # Populate form with User model data if UserProfileForm doesn't include them
-        initial_data = {
-            'first_name': request.user.first_name,
-            'last_name': request.user.last_name,
-        }
-        form = UserProfileForm(instance=profile, initial=initial_data)
-    
-    # This view should probably only handle profile updates.
-    # Password change is better handled by Django's built-in views.
-    # For the dashboard SPA, you might pass these forms in the main dashboard_view context.
-    
-    # If this view is *only* for POST, then redirect after processing.
-    # For SPA, the dashboard_view provides the forms for GET.
-    return redirect('dashboard') # This needs to be smarter for SPA
-
-
-
+    def form_invalid(self, form):
+        adapter = get_adapter(self.request)
+        if adapter.is_ajax(self.request):
+            print("AjaxPasswordResetView: Form is invalid, AJAX request detected. Returning JSON errors.") # DEBUG
+            return JsonResponse({
+                'success': False, 
+                'errors': form.errors.get_json_data(),
+                'message': "Please provide a valid email address."
+            }, status=400)
+        print("AjaxPasswordResetView: Form is invalid, NON-AJAX request. Rendering HTML.") # DEBUG
+        return super().form_invalid(form)

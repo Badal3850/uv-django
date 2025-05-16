@@ -103,7 +103,7 @@
                         
                         {% if user.is_authenticated %}
                             <a href="{% url 'dashboard' %}" class="text-gray-300 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">Dashboard</a>
-                            <form method="post" action="{% url 'account_logout' %}" class="inline">
+                            <form method="post" action="{% url 'logout' %}" class="inline">
                                 {% csrf_token %}
                                 <button type="submit" class="text-gray-300 hover:text-teal-400 px-3 py-2 rounded-md text-sm font-medium transition-colors focus:outline-none">Logout</button>
                             </form>
@@ -142,7 +142,7 @@
                         </div>
                         <div class="mt-3 px-2 space-y-1">
                             <a href="{% url 'dashboard' %}" class="block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Dashboard</a>
-                            <form method="post" action="{% url 'account_logout' %}" class="w-full">
+                            <form method="post" action="{% url 'logout' %}" class="w-full">
                                 {% csrf_token %}
                                 <button type="submit" class="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-400 hover:text-white hover:bg-gray-700">Logout</button>
                             </form>
@@ -373,125 +373,6 @@
                 closeModal(activeModalId);
             }
         });
-
-        // --- AJAX Form Handling ---
-        function setupAjaxForm(formId, messagesDivId, submitButtonId, successCallback, errorDisplayCallback) {
-            const form = document.getElementById(formId);
-            const messagesDiv = document.getElementById(messagesDivId);
-            const submitButton = document.getElementById(submitButtonId);
-            
-            if (!form || !submitButton) {
-                // console.warn(`Form or submit button not found for ${formId}`);
-                return;
-            }
-
-            const buttonText = submitButton.querySelector('.button-text');
-            const spinner = submitButton.querySelector('.spinner');
-
-            form.addEventListener('submit', function(event) {
-                event.preventDefault();
-                if(messagesDiv) messagesDiv.innerHTML = '';
-                form.querySelectorAll('.form-field-error').forEach(el => el.innerHTML = '');
-                form.querySelectorAll('input.border-red-500').forEach(el => {
-                    el.classList.remove('border-red-500', 'ring-red-500');
-                    // Also remove explicit red border from parent if any for rounded inputs
-                    if (el.parentElement && el.parentElement.classList.contains('ring-red-500')) {
-                        el.parentElement.classList.remove('ring-red-500', 'border-red-500');
-                    }
-                });
-
-
-                if(buttonText) buttonText.classList.add('hidden');
-                if(spinner) spinner.classList.remove('hidden');
-                submitButton.disabled = true;
-                const formData = new FormData(form);
-
-                fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-CSRFToken': formData.get('csrfmiddlewaretoken'),
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    credentials: 'include', // Include cookies for CSRF token
-                })
-                .then(data => {
-                    if (data.ok) {
-                        console.log('AJAX Success:', data);
-                        if(messagesDiv && data.message) {
-                             messagesDiv.innerHTML = `<div class="p-3 rounded-md bg-green-600/30 text-green-300">${data.message}</div>`;
-                        }
-                        if (successCallback) {
-                             successCallback(data);
-                        } else if (data.redirect_url) {
-                            window.location.href = data.redirect_url;
-                        } else {
-                            window.location.reload();
-                        }
-                    } else { // Error
-                        console.error('AJAX Error:', data);
-                        if (errorDisplayCallback) {
-                            errorDisplayCallback(data.errors, data.message, messagesDiv, form);
-                        } else { // Default error display
-                            if (messagesDiv && data.errors && data.errors.__all__) {
-                                const errorHtml = data.errors.__all__.map(e => `<p>${e.message || e}</p>`).join('');
-                                messagesDiv.innerHTML = `<div class="p-3 rounded-md bg-red-600/30 text-red-300">${errorHtml}</div>`;
-                            }
-                            for (const field in data.errors) {
-                                if (field !== '__all__') {
-                                    // Try to find error div by convention: error-modal-[formtype]-[fieldname]
-                                    let formType = 'unknown';
-                                    if (formId.includes('login')) formType = 'login';
-                                    else if (formId.includes('signup')) formType = 'signup';
-                                    else if (formId.includes('reset')) formType = 'reset';
-                                    
-                                    const errorFieldDiv = form.querySelector(`#error-modal-${formType}-${field}`);
-                                    const inputField = form.querySelector(`[name="${field}"]`);
-                                    
-                                    if (errorFieldDiv) {
-                                        errorFieldDiv.innerHTML = data.errors[field].map(e => `<p>${e.message || e}</p>`).join('');
-                                    }
-                                    if (inputField) {
-                                        inputField.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                                         // If input is part of a rounded group, style parent too
-                                        if (inputField.parentElement && (inputField.parentElement.classList.contains('rounded-t-md') || inputField.parentElement.classList.contains('rounded-b-md'))){
-                                            // This logic for rounded groups might need more specific selectors if your HTML is complex
-                                        }
-                                    }
-                                }
-                            }
-                             if(messagesDiv && data.message && (!data.errors || Object.keys(data.errors).length === 0) ) {
-                                 messagesDiv.innerHTML = `<div class="p-3 rounded-md bg-red-600/30 text-red-300">${data.message}</div>`;
-                            }
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('AJAX Error:', error);
-                    if(messagesDiv) messagesDiv.innerHTML = `<div class="p-3 rounded-md bg-red-600/30 text-red-300">A network error occurred. Please try again.</div>`;
-                })
-                .finally(() => {
-                    if(buttonText) buttonText.classList.remove('hidden');
-                    if(spinner) spinner.classList.add('hidden');
-                    submitButton.disabled = false;
-                });
-            });
-        }
-        
-        // Initialize AJAX for modal forms
-        setupAjaxForm('ajax-modal-login-form', 'modal-login-messages', 'modal-login-submit-button');
-        setupAjaxForm('ajax-modal-signup-form', 'modal-signup-messages', 'modal-signup-submit-button', 
-            (data) => { // Signup success callback
-                if (data.redirect_url) { window.location.href = data.redirect_url; }
-                else { window.location.reload(); } // Or show success message in modal and tell user to check email
-            }
-        );
-        setupAjaxForm('ajax-modal-password-reset-form', 'modal-reset-messages', 'modal-reset-submit-button',
-            (data) => { // Password reset success callback
-                document.getElementById('ajax-modal-password-reset-form').reset();
-                // Message is already shown by setupAjaxForm's success path
-            }
-        );
 
     }); // End DOMContentLoaded for base scripts
     </script>
